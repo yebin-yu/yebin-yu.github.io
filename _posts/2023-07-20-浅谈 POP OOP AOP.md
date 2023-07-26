@@ -1,3 +1,15 @@
+---
+layout:     post
+title:      浅谈 POP/OOP/AOP
+subtitle:   这三者分别是什么
+date:       2023-07-20
+author:     yebin-yu
+header-img: img/post-bg-recitewords.jpg
+catalog: false
+tags:
+    - 其他
+---
+
 ## 简介
 
 编程思想就是一种解决现实问题的一种思考方式，而每一种语言都是对现实问题描述进行抽象，从而让计算机去解决。
