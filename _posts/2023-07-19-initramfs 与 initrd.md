@@ -4,7 +4,7 @@ title:      initramfs 与 initrd
 subtitle:   我们用的initrd到底是什么，为什么需要这个？
 date:       2023-07-19
 author:     yebin-yu
-header-img: img/tag-bg.jpg
+header-img: img/post-bg-debug.png
 catalog: false
 tags:
     - Linux 启动

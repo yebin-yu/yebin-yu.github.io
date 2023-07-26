@@ -4,7 +4,7 @@ title:      final ReentrantLock lock = this.lock;
 subtitle:   为啥要这么写？
 date:       2023-07-16
 author:     yebin-yu
-header-img: img/tag-bg.jpg
+header-img: img/post-bg-debug.png
 catalog: false
 tags:
     - Java Tips
