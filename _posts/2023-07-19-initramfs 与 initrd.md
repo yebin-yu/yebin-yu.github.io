@@ -1,8 +1,8 @@
 ---
 layout:     post
-title:      什么是 Init 系统？init 系统的历史和现状
-subtitle:   什么是init？ systemd又是什么？
-date:       2023-07-21
+title:      initramfs 与 initrd
+subtitle:   我们用的initrd到底是什么，为什么需要这个？
+date:       2023-07-19
 author:     yebin-yu
 header-img: img/tag-bg.jpg
 catalog: false
