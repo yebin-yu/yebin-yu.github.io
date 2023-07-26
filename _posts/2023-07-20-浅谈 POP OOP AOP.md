@@ -4,7 +4,7 @@ title:      浅谈 POP/OOP/AOP
 subtitle:   这三者分别是什么
 date:       2023-07-20
 author:     yebin-yu
-header-img: img/post-bg-recitewords.jpg
+header-img: img/tag-bg-o.jpg
 catalog: false
 tags:
     - 其他
