@@ -254,5 +254,84 @@ fn get_five2() -> i32 {
     } else {
         println!("condition was false");
     }
+
+	// else if
+    if number > 5 {
+        println!("number is over 5");
+    } else if number == 3 {
+        println!("number is 3");
+    } else {
+        println!("number is not 3");
+    }
+```
+
+##### 三元控制符
+
+```rust
+    let condition = true;
+    let number = if condition { 5 } else { 6 };
+```
+
+
+
+### 循环
+
+##### 最简单的循环 - `loop`
+
+```rust
+loop {
+    println!("again");
+}
+```
+
+##### 从 `loop` 中获得返回值
+
+```rust
+let mut counter = 0;
+let result = loop {
+    counter += 1;
+    if counter == 10 {
+        break counter * 2;
+    }
+}
+
+println!("{counter}");
+```
+
+##### 循环标签：内存循环可以直接跳出外层循环
+
+```rust
+'loop1: loop {
+	loop {
+        break 'loop1;
+    }
+}
+```
+
+##### `while` 循环
+
+```rust
+    let mut number = 3;
+
+    while number != 0 {
+        println!("{number}!");
+
+        number -= 1;
+    }
+```
+
+##### `for` 循环
+
+```rust
+    let a = [10, 20, 30, 40, 50];
+    for element in a {
+        println!("the value is: {element}");
+    }
+
+	// 使用range，配合反转。
+    // 下面这个会打印 3 2 1
+    for number in (1..4).rev() {
+        println!("{number}!");
+    }
 ```
 
