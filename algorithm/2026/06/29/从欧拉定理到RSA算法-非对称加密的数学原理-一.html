@@ -1,0 +1,1494 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+<meta http-equiv="Content-Type" content="text/html; charset=UTF-8">
+  <meta charset="utf-8">
+  <meta http-equiv="X-UA-Compatible" content="IE=edge">
+  <meta name="viewport" content="width=device-width, initial-scale=1">
+  <meta name="google-translate-customization" content="108d9124921d80c3-80e20d618ff053c8-g4f02ec6f3dba68b7-c">
+<!-- Begin Jekyll SEO tag v2.9.0 -->
+<title>从欧拉定理到RSA算法 - 非对称加密的数学原理（一） | YeBin的小站</title>
+<meta name="generator" content="Jekyll v4.4.1">
+<meta property="og:title" content="从欧拉定理到RSA算法 - 非对称加密的数学原理（一）">
+<meta name="author" content="Yebin Yu">
+<meta property="og:locale" content="en_US">
+<meta name="description" content="今天午睡的时候，可能是想到了之前对开源openssl做定制化算法生成的时看到自己生成的公钥和私钥，突然想起来好像自己从来没从原理的角度去解释一下，什么是rsa算法中的公钥和私钥，为什么他能做到公钥加密但不能解密，而公钥加密的私钥却能解密的原因。">
+<meta name="twitter:description" property="og:description" content="今天午睡的时候，可能是想到了之前对开源openssl做定制化算法生成的时看到自己生成的公钥和私钥，突然想起来好像自己从来没从原理的角度去解释一下，什么是rsa算法中的公钥和私钥，为什么他能做到公钥加密但不能解密，而公钥加密的私钥却能解密的原因。">
+<link rel="canonical" href="/jekyll-theme-yat/algorithm/2026/06/29/%E4%BB%8E%E6%AC%A7%E6%8B%89%E5%AE%9A%E7%90%86%E5%88%B0RSA%E7%AE%97%E6%B3%95-%E9%9D%9E%E5%AF%B9%E7%A7%B0%E5%8A%A0%E5%AF%86%E7%9A%84%E6%95%B0%E5%AD%A6%E5%8E%9F%E7%90%86-%E4%B8%80.html">
+<meta property="og:url" content="/jekyll-theme-yat/algorithm/2026/06/29/%E4%BB%8E%E6%AC%A7%E6%8B%89%E5%AE%9A%E7%90%86%E5%88%B0RSA%E7%AE%97%E6%B3%95-%E9%9D%9E%E5%AF%B9%E7%A7%B0%E5%8A%A0%E5%AF%86%E7%9A%84%E6%95%B0%E5%AD%A6%E5%8E%9F%E7%90%86-%E4%B8%80.html">
+<meta property="og:site_name" content="YeBin的小站">
+<meta property="og:type" content="article">
+<meta property="article:published_time" content="2026-06-29T00:00:00+00:00">
+<meta property="article:modified_time" content="2026-06-29T00:00:00+00:00">
+<meta name="twitter:card" content="summary">
+<meta name="twitter:title" content="从欧拉定理到RSA算法 - 非对称加密的数学原理（一）">
+<script type="application/ld+json">
+{"@context":"https://schema.org","@type":"BlogPosting","author":{"@type":"Person","name":"Yebin Yu"},"dateModified":"2026-06-29T00:00:00+00:00","datePublished":"2026-06-29T00:00:00+00:00","description":"今天午睡的时候，可能是想到了之前对开源openssl做定制化算法生成的时看到自己生成的公钥和私钥，突然想起来好像自己从来没从原理的角度去解释一下，什么是rsa算法中的公钥和私钥，为什么他能做到公钥加密但不能解密，而公钥加密的私钥却能解密的原因。","headline":"从欧拉定理到RSA算法 - 非对称加密的数学原理（一）","mainEntityOfPage":{"@type":"WebPage","@id":"/jekyll-theme-yat/algorithm/2026/06/29/%E4%BB%8E%E6%AC%A7%E6%8B%89%E5%AE%9A%E7%90%86%E5%88%B0RSA%E7%AE%97%E6%B3%95-%E9%9D%9E%E5%AF%B9%E7%A7%B0%E5%8A%A0%E5%AF%86%E7%9A%84%E6%95%B0%E5%AD%A6%E5%8E%9F%E7%90%86-%E4%B8%80.html"},"url":"/jekyll-theme-yat/algorithm/2026/06/29/%E4%BB%8E%E6%AC%A7%E6%8B%89%E5%AE%9A%E7%90%86%E5%88%B0RSA%E7%AE%97%E6%B3%95-%E9%9D%9E%E5%AF%B9%E7%A7%B0%E5%8A%A0%E5%AF%86%E7%9A%84%E6%95%B0%E5%AD%A6%E5%8E%9F%E7%90%86-%E4%B8%80.html"}</script>
+<!-- End Jekyll SEO tag -->
+<link rel="icon" href="">
+  <link rel="canonical" href="">
+  <link rel="stylesheet" href="https://cdnjs.cloudflare.com/ajax/libs/font-awesome/4.7.0/css/font-awesome.min.css">
+  <link rel="stylesheet" href="https://cdn.jsdelivr.net/npm/typeface-noto-sans@0.0.72/index.min.css">
+  <link rel="stylesheet" href="/jekyll-theme-yat/assets/css/main.css">
+  <script src="/jekyll-theme-yat/assets/js/main.js"></script><link type="application/atom+xml" rel="alternate" href="/jekyll-theme-yat/feed.xml" title="YeBin的小站">
+<link rel="stylesheet" href="//cdnjs.cloudflare.com/ajax/libs/highlight.js/10.1.1/styles/default.min.css">
+<script src="//cdnjs.cloudflare.com/ajax/libs/highlight.js/10.1.1/highlight.min.js"></script>
+<!-- and it's easy to individually load additional languages -->
+<script charset="UTF-8" src="https://cdnjs.cloudflare.com/ajax/libs/highlight.js/10.1.1/languages/go.min.js" async></script>
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+<script>
+// Init highlight js
+document.addEventListener('DOMContentLoaded', function(event) {
+  var els = document.querySelectorAll('pre code')
+
+  function addLangData(block) {
+    var outer = block.parentElement.parentElement.parentElement;
+    var lang = block.getAttribute('data-lang');
+    for (var i = 0; i < outer.classList.length; i++) {
+      var cls = outer.classList[i];
+      if (cls.startsWith('language-')) {
+        lang = cls;
+        break;
+      }
+    }
+    if (!lang) {
+      cls = block.getAttribute('class');
+      lang = cls ? cls.replace('hljs ', '') : '';
+    }
+    if (lang.startsWith('language-')) {
+      lang = lang.substr(9);
+    }
+    block.setAttribute('class', 'hljs ' + lang);
+    block.parentNode.setAttribute('data-lang', lang);
+  }
+
+  function addBadge(block) {
+    var enabled = ('true' || 'true').toLowerCase();
+    if (enabled == 'true') {
+      var pre = block.parentElement;
+      pre.classList.add('badge');
+    }
+  }
+
+  function handle(block) {
+    addLangData(block);
+    addBadge(block)
+    hljs.highlightBlock(block);
+  }
+
+  for (var i = 0; i < els.length; i++) {
+    var el = els[i];
+    handle(el);
+  }
+});
+</script>
+
+<style>
+  /* code language badge */
+  pre.badge::before {
+    content: attr(data-lang);
+    color: #fff;
+    background-color: #ff4e00;
+    padding: 0 .5em;
+    border-radius: 0 2px;
+    text-transform: uppercase;
+    text-align: center;
+    min-width: 32px;
+    display: inline-block;
+    position: absolute;
+    right: 0;
+  }
+
+  /* fix wrong badge display for firefox browser */
+  code > table pre::before {
+    display: none;
+  }
+</style>
+<script src="//cdnjs.cloudflare.com/ajax/libs/photoswipe/5.3.7/umd/photoswipe-lightbox.umd.min.js" async></script>
+<script src="//cdnjs.cloudflare.com/ajax/libs/photoswipe/5.3.7/umd/photoswipe.umd.min.js" async></script>
+<link href="//cdnjs.cloudflare.com/ajax/libs/photoswipe/5.3.7/photoswipe.min.css" rel="stylesheet">
+<style>
+  .pswp .pswp__container .pswp__img {
+    background-color: white;
+  }
+</style>
+
+<script>
+  function initPhotoSwipe() {
+    let customOptions = {};
+
+    try {
+      const data = ``.replaceAll("=>", ":");
+      customOptions = JSON.parse(data);
+    } catch (e) {
+      console.info("Invalid custom photo previewer options! " + e.message);
+    }
+
+    // Define object and gallery options
+    const options = Object.assign(
+      {
+        gallery: "section.main",
+        children: "a.photo-swipe",
+        photo_scale: 2,
+        // dynamic import is not supported in UMD version
+        pswpModule: PhotoSwipe,
+      },
+      customOptions
+    );
+
+    const galleryEl = document.querySelector(options.gallery);
+    if (!galleryEl) {
+      return;
+    }
+
+    const imgEls = [];
+    const els = galleryEl.querySelectorAll("img:not(.emoji)");
+    els.forEach((el) => {
+      if (el.src.trim() == "") {
+        return;
+      }
+      if (!imgEls.includes(el)) {
+        imgEls.push(el);
+      }
+    });
+
+    if (imgEls.length === 0) {
+      return;
+    }
+
+    imgEls.forEach((imgEl) => {
+      imgEl.outerHTML = `
+      <a class="photo-swipe"
+        href="${imgEl.src}"
+        data-pswp-width="${
+          Math.max(imgEl.naturalWidth, imgEl.width) * options.photo_scale
+        }"
+        data-pswp-height="${
+          Math.max(imgEl.naturalHeight, imgEl.height) * options.photo_scale
+        }"
+        data-pswp-caption="${imgEl.getAttribute("caption") || imgEl.alt}"
+        target="_blank">
+        ${imgEl.outerHTML}
+      </a>`;
+    });
+
+    // Initialize PhotoSwipe 5
+    var lightbox = new PhotoSwipeLightbox(options);
+
+    lightbox.init();
+  }
+
+  window.addEventListener("load", initPhotoSwipe);
+</script>
+<script>MathJax={"tex":{"inlineMath":[["$","$"],["\\(","\\)"]],"displayMath":[["$$","$$"],["\\[","\\]"]]},"svg":{"fontCache":"global"}}</script><script src="https://polyfill.io/v3/polyfill.min.js?features=es6"></script><script src="https://cdn.jsdelivr.net/npm/mathjax@3/es5/tex-mml-chtml.js"></script>
+</head>
+<body>
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+<header class="site-header site-header-transparent" role="banner">
+
+  <div class="wrapper">
+    <div class="site-header-inner">
+<span class="site-brand"><a class="site-brand-inner" rel="author" href="/jekyll-theme-yat/">
+  <img class="site-favicon" title="YeBin的小站" src="" onerror="this.style.display='none'">
+  YeBin的小站
+</a>
+</span><nav class="site-nav">
+          <input type="checkbox" id="nav-trigger" class="nav-trigger">
+          <label for="nav-trigger">
+            <span class="menu-icon">
+              <svg viewbox="0 0 18 15" width="18px" height="15px">
+                <path d="M18,1.484c0,0.82-0.665,1.484-1.484,1.484H1.484C0.665,2.969,0,2.304,0,1.484l0,0C0,0.665,0.665,0,1.484,0 h15.032C17.335,0,18,0.665,18,1.484L18,1.484z M18,7.516C18,8.335,17.335,9,16.516,9H1.484C0.665,9,0,8.335,0,7.516l0,0 c0-0.82,0.665-1.484,1.484-1.484h15.032C17.335,6.031,18,6.696,18,7.516L18,7.516z M18,13.516C18,14.335,17.335,15,16.516,15H1.484 C0.665,15,0,14.335,0,13.516l0,0c0-0.82,0.665-1.483,1.484-1.483h15.032C17.335,12.031,18,12.695,18,13.516L18,13.516z"></path>
+              </svg>
+            </span>
+          </label>
+
+          <div class="trigger">
+<a class="page-link" href="/jekyll-theme-yat/about.html">ABOUT</a><a class="page-link" href="/jekyll-theme-yat/archives.html">ARCHIVES</a><a class="page-link" href="/jekyll-theme-yat/categories.html">CATEGORIES</a><a class="page-link" href="/jekyll-theme-yat/">HOME</a><a class="page-link" href="/jekyll-theme-yat/tags.html">TAGS</a>
+
+
+
+
+
+
+
+
+
+<div class="page-link" style="display: inline;">
+
+
+
+<div id="google_translate_element" style="display: none;">
+</div>
+
+<div class="ct-language">
+  <ul class="list-unstyled ct-language-dropdown">
+    
+      <li>
+        <a href="#" class="lang-select" data-lang="en">
+          
+          <img src="https://cdn.countryflags.com/thumbs/united-states-of-america/flag-400.png" title="English">
+          
+        </a>
+      </li>
+    
+      <li>
+        <a href="#" class="lang-select" data-lang="fr">
+          
+          <img src="https://cdn.countryflags.com/thumbs/france/flag-400.png" title="French">
+          
+        </a>
+      </li>
+    
+      <li>
+        <a href="#" class="lang-select" data-lang="zh-CN">
+          
+          <img src="https://cdn.countryflags.com/thumbs/china/flag-400.png" title="Chinese(Simple)">
+          
+        </a>
+      </li>
+    
+      <li>
+        <a href="#" class="lang-select" data-lang="ja">
+          
+          <img src="https://cdn.countryflags.com/thumbs/japan/flag-400.png" title="Japanese">
+          
+        </a>
+      </li>
+    
+      <li>
+        <a href="#" class="lang-select" data-lang="ko">
+          
+          <img src="https://cdn.countryflags.com/thumbs/south-korea/flag-400.png" title="Korean">
+          
+        </a>
+      </li>
+    
+      <li>
+        <a href="#" class="lang-select" data-lang="ru">
+          
+          <img src="https://cdn.countryflags.com/thumbs/russia/flag-400.png" title="Russian">
+          
+        </a>
+      </li>
+    
+  </ul>
+</div>
+
+<script type="text/javascript">
+function googleTranslateElementInit() {
+  new google.translate.TranslateElement({
+    pageLanguage: 'en',
+    autoDisplay: false,
+    layout: google.translate.TranslateElement.InlineLayout.VERTICAL
+  }, 'google_translate_element');
+
+  // Links to cross-origin destinations are unsafe
+  var gll = document.getElementsByClassName('goog-logo-link')[0];
+  if (gll) {
+    gll.setAttribute('rel', 'noopener');
+  }
+
+  function restoreLang() {
+    var iframe = document.getElementsByClassName('goog-te-banner-frame')[0];
+    if (!iframe) return;
+
+    var innerDoc = iframe.contentDocument || iframe.contentWindow.document;
+    var restore_el = innerDoc.getElementsByTagName("button");
+
+    for (var i = 0; i < restore_el.length; i++) {
+      if (restore_el[i].id.indexOf("restore") >= 0) {
+        restore_el[i].click();
+        var close_el = innerDoc.getElementsByClassName("goog-close-link");
+        close_el[0].click();
+        return;
+      }
+    }
+  }
+
+  function triggerHtmlEvent(element, eventName) {
+    var event;
+    if (document.createEvent) {
+      event = document.createEvent('HTMLEvents');
+      event.initEvent(eventName, true, true);
+      element.dispatchEvent(event);
+    } else {
+      event = document.createEventObject();
+      event.eventType = eventName;
+      element.fireEvent('on' + event.eventType, event);
+    }
+  }
+
+  var googleCombo = document.querySelector("select.goog-te-combo");
+  var langSelect = document.querySelector('.ct-language');
+  langSelect.addEventListener('click', function(event) {
+    if (!event.target) {
+      return;
+    }
+
+    var selected = document.querySelector('.ct-language .ct-language-selected');
+    if (selected) {
+      selected.classList.remove('ct-language-selected');
+    }
+
+    var target = event.target;
+    while (target && target !== langSelect ) {
+      if (target.matches('.lang-select')) {
+        break;
+      }
+      target = target.parentElement;
+    }
+
+    if (target && target.matches('.lang-select')) {
+      var lang = target.getAttribute('data-lang');
+      if (googleCombo.value == lang) {
+        restoreLang();
+      } else {
+        target.parentElement.classList.add('ct-language-selected');
+        googleCombo.value = lang;
+        triggerHtmlEvent(googleCombo, 'change');
+      }
+    }
+
+    event.preventDefault();
+  });
+}
+</script>
+
+<script type="text/javascript" src="https://translate.google.com/translate_a/element.js?cb=googleTranslateElementInit" async></script>
+</div>
+</div>
+        </nav>
+</div>
+  </div>
+</header>
+
+<script>
+  function initHeader() {
+    var lastScrollY = getScrollPos().y;
+    var documentElement = document.documentElement;
+
+    function storeScrollData() {
+      var y = getScrollPos().y;documentElement.setAttribute("data-header-transparent", "");var scrollStatus = "";
+
+      if (y <= 0) {
+        scrollStatus = "top";
+      } else if ((window.innerHeight + y) >= document.body.offsetHeight) {
+        scrollStatus = "bottom";
+      } else {
+        var isScrollDown = (y - lastScrollY > 0) ? true : false;
+        scrollStatus = isScrollDown ? "down" : "up";
+      }
+
+      lastScrollY = y;
+      documentElement.setAttribute("data-scroll-status", scrollStatus);
+    }
+
+    window.addEventListener('scroll', function(e) {
+      storeScrollData();
+    });
+
+    storeScrollData();
+  }
+  document.addEventListener('DOMContentLoaded', initHeader);
+</script>
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+<style>
+    html .page-banner {
+      background: #000;
+    }
+  </style>
+<style>html .page-banner {
+      height:  36.8vh;
+      min-height: 38vh;
+    }
+    html[data-scroll-status="top"] .page-banner {
+      height: 100vh;
+    }
+  </style>
+<style>
+    html .page-banner .page-banner-img > *:first-child {
+      opacity: 0.618;
+    }
+
+    html[data-theme="dark"] .page-banner .page-banner-img > *:first-child {
+      opacity: 0.443724;
+    }
+  </style>
+<style>
+    html .page-banner .page-banner-inner > *:first-child > *:nth-child(1) {
+      font-size: 4.25em; font-weight: bold; text-decoration: underline
+    }
+  </style>
+<style>
+    html .page-banner .page-banner-inner > *:first-child > *:nth-child(2) {
+      color: gold
+    }
+  </style>
+<section class="page-banner">
+    <div class="page-banner-img">
+<video autoplay="" poster="https://bit.ly/3xTmdUP" playsinline>
+          <source src="https://vjs.zencdn.net/v/oceans.mp4">
+        </source></video>
+        <script>
+          (function() {
+            var video = document.querySelector('.page-banner .page-banner-img > video');
+            var videoPlay = function() {
+              video.play().catch (function() {
+                  video.muted = true;
+                  video.play();
+                });
+            }
+
+            video.onloadstart = function() {
+              video.currentTime = 8.5;
+              video.volume = 0;
+              video.muted = (video.volume == 0);
+              videoPlay();
+            }
+
+            video.onended = function() {
+              video.currentTime = 8.5;
+              video.volume = 0;video.play();}
+          })();
+        </script>
+</div>
+    <div class="wrapper">
+      <div class="page-banner-inner">
+<header class="post-header">
+  <h1 class="post-title p-name" itemprop="name headline">从欧拉定理到RSA算法 - 非对称加密的数学原理（一）</h1>
+  <h2 class="post-subtitle">从欧拉定理到RSA算法的详述，第一篇先将欧拉定理</h2>
+
+  <div class="post-meta">
+    <time class="dt-published" datetime="2026-06-29T00:00:00+00:00" itemprop="datePublished"><i class="fa fa-calendar"></i> Jun 29, 2026
+    </time><span class="post-author left-vsplit"><i class="fa fa-pencil"></i> Yebin Yu</span>
+    
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+    <span class="post-reading-time left-vsplit"><i class="fa fa-clock-o"></i> About 5 mins</span>
+  </div>
+<div class="post-tags">
+<a class="post-tag" href="/jekyll-theme-yat/tags.html#%E5%AF%86%E7%A0%81%E5%AD%A6">#密码学</a><a class="post-tag" href="/jekyll-theme-yat/tags.html#RSA">#RSA</a>
+</div></header>
+</div>
+    </div>
+  </section><script>
+  function hashLocate(hashValue) {
+    hashValue = hashValue.replace(/^.*#h-/, '');
+    hashValue = decodeURIComponent(hashValue);
+    var element = document.getElementById(hashValue);
+
+    if (!element) {
+      return;
+    }
+
+    var header = document.querySelector('header.site-header');
+    var headerRect = header.getBoundingClientRect();
+    var headerTop = Math.floor(headerRect.top);
+    var headerHeight = Math.floor(headerRect.height);
+    var scrollPos = getScrollPos();
+    var offsetY = element.offsetTop - (headerTop + headerHeight + 20);
+
+    if (offsetY == scrollPos.y) {
+      return;
+    }
+
+    if (headerTop == 0  && offsetY > scrollPos.y) {
+      offsetY += headerHeight + 2;
+    } else if (headerTop < 0  && offsetY < scrollPos.y) {
+      offsetY -= headerHeight - 2;
+    }
+
+    smoothScrollTo(offsetY);
+  }
+
+  // The first event occurred
+  window.addEventListener('load', function(event) {
+    if (window.location.hash) {
+      hashLocate(window.location.hash);
+    }
+  });
+
+  // The first event occurred
+  window.addEventListener('click', function(event) {
+    if (event.target.tagName.toLowerCase() == 'a') {
+      hashLocate(event.target.getAttribute('href'));
+    }
+  });
+</script>
+<div class="theme-toggle">
+  <input type="checkbox" id="theme-switch">
+  <label for="theme-switch">
+    <div class="toggle"></div>
+    <div class="names">
+      <p class="light">Light</p>
+      <p class="dark">Dark</p>
+    </div>
+  </label>
+</div>
+
+
+
+
+<script>
+  (function() {
+    var sw = document.getElementById('theme-switch');
+    var html = document.getElementsByTagName('html')[0];
+    var nightModeOption = ('auto' || 'auto').toLowerCase();
+    var storage = nightModeOption === 'manual'
+        ? localStorage
+        : sessionStorage;
+    var themeData = loadThemeData();
+
+    function saveThemeData(data) {
+      storage.setItem('theme', JSON.stringify(data));
+    }
+
+    function loadThemeData() {
+      var data = storage.getItem('theme');
+      try {
+        data = JSON.parse(data ? data : '');
+      } catch(e) {
+        data = { nightShift: undefined, autoToggleAt: 0 };
+        saveThemeData(data);
+      }
+      return data;
+    }
+
+    function handleThemeToggle(nightShift) {
+      themeData.nightShift = nightShift;
+      saveThemeData(themeData);
+      html.dataset.theme = nightShift ? 'dark' : 'light';
+      setTimeout(function() {
+        sw.checked = nightShift ? true : false;
+        document.dispatchEvent(new Event('theme-changed'));
+      }, 50);
+    }
+
+    function autoThemeToggle() {
+      // Next time point of theme toggle
+      var now = new Date();
+      var toggleAt = new Date();
+      var hours = now.getHours();
+      var nightShift = hours >= 19 || hours <=7;
+
+      if (nightShift) {
+        if (hours > 7) {
+          toggleAt.setDate(toggleAt.getDate() + 1);
+        }
+        toggleAt.setHours(7);
+      } else {
+        toggleAt.setHours(19);
+      }
+
+      toggleAt.setMinutes(0);
+      toggleAt.setSeconds(0);
+      toggleAt.setMilliseconds(0)
+
+      var delay = toggleAt.getTime() - now.getTime();
+
+      // auto toggle theme mode
+      setTimeout(function() {
+        handleThemeToggle(!nightShift);
+      }, delay);
+
+      return {
+        nightShift: nightShift,
+        toggleAt: toggleAt.getTime()
+      };
+    }
+
+    // Listen the theme toggle event
+    sw.addEventListener('change', function(event) {
+      handleThemeToggle(event.target.checked);
+    });
+
+    if (nightModeOption == 'auto') {
+      var data = autoThemeToggle();
+
+      // Toggle theme by local setting
+      if (data.toggleAt > themeData.autoToggleAt) {
+        themeData.autoToggleAt = data.toggleAt;
+        handleThemeToggle(data.nightShift);
+      } else {
+        handleThemeToggle(themeData.nightShift);
+      }
+    } else if (nightModeOption == 'manual') {
+      handleThemeToggle(themeData.nightShift);
+    } else {
+      var nightShift = themeData.nightShift;
+      if (nightShift === undefined) {
+        nightShift = nightModeOption === 'on';
+      }
+      handleThemeToggle(nightShift);
+    }
+  })();
+</script>
+<div id="click-to-top" class="click-to-top">
+  <i class="fa fa-arrow-up"></i>
+</div>
+<script>
+  (function () {
+    const clickToTop = document.getElementById('click-to-top');
+    window.addEventListener('scroll', () => {
+      if (window.scrollY > 100) {
+        clickToTop.classList.add('show')
+      }else {
+        clickToTop.classList.remove('show')
+      }
+    });
+    clickToTop.addEventListener('click', () => {
+      window.smoothScrollTo(0);
+    });
+  })();
+</script>
+<main class="page-content" aria-label="Content">
+      <div class="wrapper">
+        <div class="framework">
+  <section class="main">
+
+     <div class="post">
+  <section>
+
+
+
+
+
+
+
+
+
+<article class="post h-entry" itemscope itemtype="http://schema.org/BlogPosting">
+
+    <div class="post-content e-content" itemprop="articleBody">
+
+      <p>今天午睡的时候，可能是想到了之前对开源openssl做定制化算法生成的时看到自己生成的公钥和私钥，突然想起来好像自己从来没从原理的角度去解释一下，什么是rsa算法中的公钥和私钥，为什么他能做到公钥加密但不能解密，而公钥加密的私钥却能解密的原因。</p>
+
+<p>开始学习后，才知道如果想要了解RSA算法的原理，必须要从欧拉定理入手，通过欧拉定理的变形和模反才能得到RSA算法的雏形。由于学下来发现篇幅太大，我懒得写了，所以下面的内容都是我和AI问答之后，我给的AI整体框架，让AI基于我们的对话生成的，当然其中也有我自己的一些补充，由于文笔粗劣，夹杂在AI流畅的文本中会很显眼，大家阅读的时候发现写的不好的地方，那大概率是我加的~😄。</p>
+
+<p>内容有点多，我分了三篇wiki来讲。</p>
+
+<h1 id="非对称加密的数学原理一">非对称加密的数学原理（一）</h1>
+
+<h2 id="欧拉定理的数学基础">欧拉定理的数学基础</h2>
+
+<h3 id="引言">引言</h3>
+
+<p>在广阔的数学领域中，某些原理如同万能钥匙，能解锁深层的结构性真理，并催生强大的现实世界应用。欧拉定理便是其中之一，作为数论的基石，它为我们理解整数的周期性本质提供了深刻的洞见。本文将作为系列文章的第一部分，系统梳理欧拉定理的数学基础，为后续引出RSA公钥加密算法做好理论铺垫。</p>
+
+<h3 id="一基本概念回顾">一、基本概念回顾</h3>
+<p>``
+在正式阐述欧拉定理之前，我们需要先厘清几个数论中的基础概念，它们是理解后续内容的基石。</p>
+
+<h4 id="11-余数与同余">1.1 余数与同余</h4>
+
+<p>给定一个正整数 $n$，如果两个整数 a 和 b，能满足 <code class="language-plaintext highlighter-rouge">n % a == n % b</code> (百分号是计算机内取余的说法，我习惯这么写了)，那么就称 $a$ 与 $b$ 对模 $n$ <strong>同余</strong>。同余还有另一个数学算法，即如果两个整数 $a$ 和 $b$ 满足 $a - b$ 能够被 $n$ 整除，即 $n \mid (a - b)$，记作：</p>
+
+<p>$$a \equiv b \pmod{n}$$
+为什么二者等价呢？推理如下：</p>
+<ul>
+  <li>假设 $a$ 除以 $n$ 的商是 $q_1$，余数是 $r_1$；$b$ 除以 $n$ 的商是 $q_2$，余数是 $r_2$。即 $a = q_1 n + r_1$，$b = q_2 n + r_2$。</li>
+  <li>那么它们的差 $a - b = (q_1 - q_2)n + (r_1 - r_2)$。</li>
+  <li>如果 $a$ 和 $b$ 的余数相同（即 $r_1 = r_2$），那么 $r_1 - r_2 = 0$，此时 $a - b = (q_1 - q_2)n$，显然能被 $n$ 整除。</li>
+  <li>反过来，如果 $a - b$ 能被 $n$ 整除，因为 $a - b = (q_1 - q_2)n + (r_1 - r_2)$，这意味着 $(r_1 - r_2)$ 也必须能被 $n$ 整除。但由于余数 $r_1, r_2$ 都小于 $n$，它们之间的差也必定小于 $n$。一个绝对值小于 $n$ 的数要想被 $n$ 整除，只能是 0。所以 $r_1 - r_2 = 0$，即余数相同。</li>
+</ul>
+
+<p>同余是整数的一个重要等价关系，它将无限的整数划分成有限的等价类。<strong>欧拉定理本质上就是一个关于同余的定理</strong>。</p>
+
+<h4 id="12-互质">1.2 互质</h4>
+
+<p>若两个正整数 $a$ 和 $b$ 的最大公约数为 1，即 $\gcd(a, b) = 1$，则称 $a$ 与 $b$ <strong>互质</strong>。需要注意的是，互质的两个数并不要求各自都是质数——例如 $(15, 8) = 1$，两个合数同样可以互质。</p>
+
+<h4 id="13-质数">1.3 质数</h4>
+
+<p><strong>质数</strong>（也称素数）是指只能被 1 和其自身整除的正整数，如 2, 3, 5, 7, 11, 13 等。质数是数论中最基本的构建单元，算术基本定理告诉我们，任何一个大于 1 的正整数都可以唯一地分解为质数的乘积。</p>
+
+<hr>
+
+<h3 id="二欧拉函数-varphin">二、欧拉函数 $\varphi(n)$</h3>
+
+<h4 id="21-定义">2.1 定义</h4>
+
+<p>对于任意正整数 $n$，<strong>欧拉函数 $\varphi(n)$ 定义为小于或等于 $n$ 的正整数中与 $n$ 互质的数的个数。</strong></p>
+
+<p>举例来说：</p>
+
+<ul>
+  <li>当 $n = 8$ 时，与 8 互质的数有 ${1, 3, 5, 7}$，共 4 个，因此 $\varphi(8) = 4$。</li>
+  <li>当 $n = 10$ 时，与 10 互质的数有 ${1, 3, 7, 9}$，共 4 个，因此 $\varphi(10) = 4$。</li>
+</ul>
+
+<h4 id="22-计算方法">2.2 计算方法</h4>
+
+<p>欧拉函数的计算依赖于 $n$ 的质因数分解。设 $n$ 的质因数分解为：</p>
+
+<p>$$n = p_1^{k_1} \cdot p_2^{k_2} \cdots p_m^{k_m}$$</p>
+
+<p>则欧拉函数可通过下式计算：</p>
+
+<p>$$\varphi(n) = n \left(1 - \frac{1}{p_1}\right)\left(1 - \frac{1}{p_2}\right) \cdots \left(1 - \frac{1}{p_m}\right)$$</p>
+
+<p>在实际计算中，我们常常遇到以下几种特殊情况：</p>
+
+<table>
+  <thead>
+    <tr>
+      <th>情形</th>
+      <th>条件</th>
+      <th>公式</th>
+      <th>示例</th>
+    </tr>
+  </thead>
+  <tbody>
+    <tr>
+      <td>情形1</td>
+      <td>$n = 1$</td>
+      <td>$\varphi(1) = 1$</td>
+      <td>$\varphi(1) = 1$</td>
+    </tr>
+    <tr>
+      <td>情形2</td>
+      <td>$n$ 为质数 $p$</td>
+      <td>$\varphi(p) = p - 1$</td>
+      <td>$\varphi(7) = 6$</td>
+    </tr>
+    <tr>
+      <td>情形3</td>
+      <td>$n = p^k$</td>
+      <td>$\varphi(p^k) = (p-1) \cdot p^{k-1}$</td>
+      <td>$\varphi(8) = \varphi(2^3) = 1 \cdot 2^2 = 4$</td>
+    </tr>
+    <tr>
+      <td>情形4</td>
+      <td>$n = pq$（$p, q$ 为不同质数）</td>
+      <td>$\varphi(pq) = (p-1)(q-1)$</td>
+      <td>$\varphi(15) = \varphi(3 \times 5) = 2 \times 4 = 8$</td>
+    </tr>
+  </tbody>
+</table>
+
+<p>其中，<strong>情形4，也就是 $\varphi(pq) = (p-1)(q-1)$ 在后续 RSA 算法中扮演着至关重要的角色</strong>，我们稍后会详细讨论。</p>
+
+<h4 id="23-情形4的简单证明">2.3 情形4的简单证明</h4>
+
+<p>由于 $p, q$ 是不同的质数，在区间 $[1, pq)$ 上，与 $pq$ <strong>不</strong>互质的数只有两类：</p>
+
+<ol>
+  <li>$p$ 的整数倍：$p, 2p, 3p, \ldots, (q-1)p$，共 $q - 1$ 个；</li>
+  <li>$q$ 的整数倍：$q, 2q, 3q, \ldots, (p-1)q$，共 $p - 1$ 个。</li>
+</ol>
+
+<p>因此，与 $pq$ 互质的正整数个数为：</p>
+
+<p>$$\varphi(pq) = (pq - 1) - (q - 1) - (p - 1) = pq - p - q + 1 = (p - 1)(q - 1)$$</p>
+
+<p>证毕。</p>
+
+<hr>
+
+<h3 id="三欧拉定理">三、欧拉定理</h3>
+
+<h4 id="31-定理表述">3.1 定理表述</h4>
+
+<blockquote>
+  <p><strong>欧拉定理</strong>（Euler’s Theorem）：若 $a$ 和 $n$ 为正整数，且 $\gcd(a, n) = 1$（即 $a$ 与 $n$ 互质），则：</p>
+
+  <p>$$a^{\varphi(n)} \equiv 1 \pmod{n}$$</p>
+</blockquote>
+
+<p>其中 $\varphi(n)$ 是欧拉函数。</p>
+
+<h4 id="32-直观理解指数的周期性">3.2 直观理解：指数的周期性</h4>
+
+<p>欧拉定理的核心思想在于<strong>指数的周期性</strong>。在模 $n$ 运算中，不断地用一个数 $a$ 去乘以自己（即 $a, a^2, a^3, \ldots$），结果会呈现出周期性循环。欧拉定理告诉我们：只要 $a$ 和 $n$ 互质，那么 $a$ 的 $\varphi(n)$ 次方模 $n$ 的结果必然是 1。</p>
+
+<p>换一种说法：在模 $n$ 的世界里，$a^{\varphi(n)}$ 就像是”走完了一整圈”，回到了起点 1。</p>
+
+<h4 id="33-一个具体例子">3.3 一个具体例子</h4>
+
+<p>令 $a = 3$，$n = 10$。首先验证两者互质：$\gcd(3, 10) = 1$。</p>
+
+<p>计算欧拉函数：</p>
+
+<ul>
+  <li>与 10 互质的数有 ${1, 3, 7, 9}$，故 $\varphi(10) = 4$。</li>
+</ul>
+
+<p>验证欧拉定理：<br>
+$$3^{\varphi(10)} = 3^4 = 81 = 80 + 1 \equiv 1 \pmod{10} \quad \checkmark$$</p>
+
+<p>与定理结论完全相符。</p>
+
+<h4 id="34-与费马小定理的关系">3.4 与费马小定理的关系</h4>
+
+<p>欧拉定理实际上是<strong>费马小定理</strong>的推广。当 $n$ 为质数 $p$ 时，$\varphi(p) = p - 1$，代入欧拉定理即得：</p>
+
+<p>$$a^{p-1} \equiv 1 \pmod{p}$$</p>
+
+<p>这就是费马小定理。因此，费马小定理可以视为欧拉定理在模数为质数时的特殊情形。</p>
+
+<hr>
+
+<h3 id="四欧拉定理的证明">四、欧拉定理的证明</h3>
+
+<p>以下是一个基于<strong>剩余系置换</strong>的经典证明思路。</p>
+
+<h4 id="41-构造缩系">4.1 构造缩系</h4>
+
+<p>设 $b_1, b_2, \ldots, b_{\varphi(n)}$ 为小于 $n$ 且与 $n$ 互质的全部正整数，即<strong>缩系</strong>（reduced residue system）。</p>
+
+<p>考虑如下 $\varphi(n)$ 个数：</p>
+
+<p>$$m_i = a \cdot b_i \pmod{n}, \quad i = 1, 2, \ldots, \varphi(n)$$</p>
+
+<h4 id="42-证明这-varphin-个数互不相同">4.2 证明这 $\varphi(n)$ 个数互不相同</h4>
+
+<p>假设存在 $i \neq j$ 使得 $a \cdot b_i \equiv a \cdot b_j \pmod{n}$。</p>
+
+<p>由于 $\gcd(a, n) = 1$，$a$ 在模 $n$ 下存在乘法逆元，可以两边消去 $a$(乘法逆元可以看<code class="language-plaintext highlighter-rouge">七、补充</code>中的内容)，得到：</p>
+
+<p>$$b_i \equiv b_j \pmod{n}$$</p>
+
+<p>但 $b_i, b_j$ 都小于 $n$ 且互不相同，矛盾。因此 $m_1, m_2, \ldots, m_{\varphi(n)}$ 互不相同。</p>
+
+<h4 id="43-证明这些数都与-n-互质">4.3 证明这些数都与 $n$ 互质</h4>
+
+<p>因为 $\gcd(a, n) = 1$ 且 $\gcd(b_i, n) = 1$，所以 $\gcd(a \cdot b_i, n) = 1$，进而 $\gcd(m_i, n) = \gcd(a \cdot b_i \bmod n, n) = 1$。</p>
+
+<h4 id="44-得出结论">4.4 得出结论</h4>
+
+<p>由于 $m_1, m_2, \ldots, m_{\varphi(n)}$ 是 $\varphi(n)$ 个互不相同且都与 $n$ 互质的数，它们必然恰好是 $b_1, b_2, \ldots, b_{\varphi(n)}$ 的一个排列。因此：</p>
+
+<p>$$\prod_{i=1}^{\varphi(n)} m_i \equiv \prod_{i=1}^{\varphi(n)} b_i \pmod{n}$$</p>
+
+<p>即：</p>
+
+<p>$$a^{\varphi(n)} \cdot \prod_{i=1}^{\varphi(n)} b_i \equiv \prod_{i=1}^{\varphi(n)} b_i \pmod{n}$$</p>
+
+<p>由于 $\prod b_i$ 与 $n$ 互质，可以在两边消去，得到：</p>
+
+<p>$$a^{\varphi(n)} \equiv 1 \pmod{n}$$</p>
+
+<p><strong>证毕。</strong> $\blacksquare$</p>
+
+<hr>
+
+<h3 id="五欧拉定理的一个重要推论">五、欧拉定理的一个重要推论</h3>
+
+<p>对欧拉定理稍作变形，可以得到一个在后续 RSA 算法中至关重要的推论。</p>
+
+<p>将 $a^{\varphi(n)} \equiv 1 \pmod{n}$ 两边同时取 $k$ 次方，再乘以 $a$，得到：</p>
+
+<p>$$a^{k \cdot \varphi(n) + 1} \equiv a \pmod{n}$$</p>
+
+<p>其中 $k$ 为任意正整数。</p>
+
+<p>这个推论的深刻含义在于：<strong>如果一个数的指数可以写成 $k \cdot \varphi(n) + 1$ 的形式，那么对该数进行这个指数次方运算后模 $n$，结果会还原为原数本身。</strong></p>
+
+<p>这正是后续 RSA 加解密能够成功还原明文的数学根基所在——通过精心设计公钥指数 $e$ 和私钥指数 $d$，使得 $e \cdot d = k \cdot \varphi(n) + 1$，从而利用这一推论实现可逆的加密与解密。</p>
+
+<hr>
+
+<h3 id="六欧拉定理的应用降幂">六、欧拉定理的应用：降幂</h3>
+
+<p>除了作为密码学的基石，欧拉定理在计算数学中还有一个非常实用的功能——<strong>降幂</strong>。</p>
+
+<p>当需要计算 $a^b \bmod n$ 而 $b$ 极其巨大时，如果 $\gcd(a, n) = 1$，可以利用欧拉定理将指数降低：</p>
+
+<p>$$a^b \equiv a^{b \bmod \varphi(n)} \pmod{n}$$</p>
+
+<p><strong>示例</strong>：计算 $3^{100} \bmod 7$。</p>
+
+<ol>
+  <li>检查条件：$\gcd(3, 7) = 1$，满足。</li>
+  <li>计算 $\varphi(7) = 6$（因为 7 是质数）。</li>
+  <li>降幂：$100 \bmod 6 = 4$。</li>
+  <li>简化：$3^{100} \equiv 3^4 = 81 \equiv 4 \pmod{7}$。</li>
+</ol>
+
+<p>这种降幂技巧在算法竞赛和密码学工程中极为常用。</p>
+
+<hr>
+
+<h3 id="七补充">七、补充</h3>
+
+<h4 id="71-乘法逆元的概念">7.1 乘法逆元的概念</h4>
+
+<p>“乘法逆元”是模运算里的一个概念，可以类比成”模意义下的倒数”。</p>
+
+<h5 id="定义">定义</h5>
+
+<p>在模 n意义下，如果 gcd(a,n)=1，则<strong>存在唯一</strong>一个整数 a−1（记作 a−1modn），使得
+a⋅a−1≡1(modn)
+这个 a−1就叫做 a在模 n下的<strong>乘法逆元</strong>。</p>
+
+<h5 id="例子">例子</h5>
+
+<p>比如模 n=7，a=3：</p>
+
+<ul>
+  <li>3×5=15≡1(mod7)</li>
+  <li>所以 3−1≡5(mod7)，即 3 的逆元是 5。</li>
+</ul>
+
+<p>再比如模 n=6，a=4：</p>
+
+<ul>
+  <li>gcd(4,6)=2=1，<strong>没有逆元</strong>（因为 4 乘任何数模 6 都不可能等于 1）。</li>
+</ul>
+
+<h5 id="为什么存在唯一的乘法逆元">为什么存在唯一的乘法逆元</h5>
+
+<p>假设存在两个不同的整数 x1​,x2​都是 a的逆元，即：
+ax1​≡1(modn)
+ax2​≡1(modn)</p>
+
+<p>两式相减得：
+a(x1​−x2​)≡0(modn)</p>
+
+<p>这意味着 n∣a(x1​−x2​)。
+因为 gcd(a,n)=1，所以 n∣(x1​−x2​)（这是数论的一个基本性质：若 gcd(a,n)=1且 n∣a⋅k，则 n∣k）。
+于是 x1​≡x2​(modn)，即它们在模 n下相等。所以逆元在模 n意义下<strong>唯一</strong>。</p>
+
+<hr>
+
+<h3 id="小结">小结</h3>
+
+<p>在本篇中，我们从同余、互质等基本概念出发，系统介绍了欧拉函数 $\varphi(n)$ 的定义与计算，阐述了欧拉定理的内容及其证明，并引出了对 RSA 算法至关重要的推论 $a^{k\varphi(n)+1} \equiv a \pmod{n}$。</p>
+
+<p>欧拉定理揭示了模运算中指数的周期性规律，它”能将看似不可能的巨大指数计算转变为可处理的问题”，并为构建陷门函数提供了理论基础。在下一篇中，我们将以此为基础，探讨欧拉定理的进一步变形，并最终引出 RSA 公钥加密算法的完整构造。</p>
+
+<hr>
+
+<blockquote>
+  <p><strong>下一篇预告</strong>：《从欧拉定理到RSA算法（二）：欧拉定理的变形与模反元素》</p>
+</blockquote>
+
+
+    </div>
+
+</article>
+<div class="post-nav">
+<a class="previous" href="/jekyll-theme-yat/anthropology/2025/11/13/%E6%9E%AA%E7%82%AE%E7%BB%86%E8%8F%8C%E4%B8%8E%E9%92%A2%E9%93%81-%E6%80%BB%E7%BB%93%E5%8F%8A%E8%AF%BB%E5%90%8E%E6%84%9F.html" title="《枪炮细菌与钢铁》总结及读后感">
+          <div>《枪炮细菌与钢铁》总结及读后感</div>
+        </a><a class="next" href="/jekyll-theme-yat/algorithm/2026/06/30/%E4%BB%8E%E6%AC%A7%E6%8B%89%E5%AE%9A%E7%90%86%E5%88%B0RSA%E7%AE%97%E6%B3%95-%E9%9D%9E%E5%AF%B9%E7%A7%B0%E5%8A%A0%E5%AF%86%E7%9A%84%E6%95%B0%E5%AD%A6%E5%8E%9F%E7%90%86-%E4%B8%89.html" title="从欧拉定理到RSA算法 - 非对称加密的数学原理（三）">
+          <div>从欧拉定理到RSA算法 - 非对称加密的数学原理（三）</div>
+        </a>
+</div>
+<div class="post-related">
+      <div>Related Articles</div>
+      <ul>
+        <li class="">
+          <a class="post-link" href="/jekyll-theme-yat/junk/2017/05/20/this-post-demonstrates-post-content-styles.html" title="This post demonstrates post content styles">
+            This post demonstrates post content styles<span class="post-badges">
+  <span class="post-badge badge-top">TOP</span>
+  <span class="post-badge badge-new">NEW</span>
+</span>
+</a>
+        </li>
+<li class="top-post">
+          <a class="post-link" href="/jekyll-theme-yat/algorithm/2026/06/29/%E4%BB%8E%E6%AC%A7%E6%8B%89%E5%AE%9A%E7%90%86%E5%88%B0RSA%E7%AE%97%E6%B3%95-%E9%9D%9E%E5%AF%B9%E7%A7%B0%E5%8A%A0%E5%AF%86%E7%9A%84%E6%95%B0%E5%AD%A6%E5%8E%9F%E7%90%86-%E4%B8%80.html" title="从欧拉定理到RSA算法 - 非对称加密的数学原理（一）">
+            从欧拉定理到RSA算法 - 非对称加密的数学原理（一）<span class="post-badges">
+  <span class="post-badge badge-top">TOP</span>
+  <span class="post-badge badge-new">NEW</span>
+</span>
+</a>
+        </li>
+<li class="top-post">
+          <a class="post-link" href="/jekyll-theme-yat/jekyll/2015/01/01/welcome-to-jekyll.html" title="Welcome to Jekyll!">
+            Welcome to Jekyll!<span class="post-badges">
+  <span class="post-badge badge-top">TOP</span>
+  <span class="post-badge badge-new">NEW</span>
+</span>
+</a>
+        </li>
+<li class="top-post">
+          <a class="post-link" href="/jekyll-theme-yat/algorithm/2026/06/30/%E4%BB%8E%E6%AC%A7%E6%8B%89%E5%AE%9A%E7%90%86%E5%88%B0RSA%E7%AE%97%E6%B3%95-%E9%9D%9E%E5%AF%B9%E7%A7%B0%E5%8A%A0%E5%AF%86%E7%9A%84%E6%95%B0%E5%AD%A6%E5%8E%9F%E7%90%86-%E4%B8%89.html" title="从欧拉定理到RSA算法 - 非对称加密的数学原理（三）">
+            从欧拉定理到RSA算法 - 非对称加密的数学原理（三）<span class="post-badges">
+  <span class="post-badge badge-top">TOP</span>
+  <span class="post-badge badge-new">NEW</span>
+</span>
+</a>
+        </li>
+</ul>
+    </div>
+<div class="post-comments"></div></section>
+</div>
+
+
+  </section>
+  <section class="sidebar" style="margin-left: 15px;">
+    <!-- Get sidebar items --><style type="text/css" media="screen">
+.post-menu ul {
+  list-style: none;
+  padding: 0;
+  margin: 0;
+}
+</style>
+
+<div class="post-menu">
+  <div class="post-menu-title">TOC</div>
+  <div class="post-menu-content"></div>
+</div>
+
+<script>
+  function generateContent() {
+    var menu = document.querySelector(".post-menu");
+    var menuContent =  menu.querySelector(".post-menu-content");
+    var headings = document.querySelector(".post-content").querySelectorAll("h2, h3, h4, h5, h6");
+
+    // Hide menu when no headings
+    if (headings.length === 0) {
+      return menu.style.display = "none";
+    }
+
+    // Generate post menu
+    var menuHTML = '';
+    for (var i = 0; i < headings.length; i++) {
+      var h = headings[i];
+      menuHTML += (
+        '<li class="h-' + h.tagName.toLowerCase() + '">'
+        + '<a href="#h-' + h.getAttribute('id') + '">' + h.textContent + '</a></li>');
+    }
+
+    menuContent.innerHTML = '<ul>' + menuHTML + '</ul>';
+
+    // The header element
+    var header = document.querySelector('header.site-header');
+
+    function doMenuCollapse(index, over_items) {
+      var items = menuContent.firstChild.children;
+
+      if (over_items == undefined) {
+        over_items = 20;
+      }
+
+      if (items.length < over_items) {
+        return;
+      }
+
+      var activeItem = items[index];
+      var beginItem = activeItem
+      var endItem = activeItem
+      var beginIndex = index;
+      var endIndex = index + 1;
+      while (beginIndex >= 0
+        && !items[beginIndex].classList.contains('h-h2')) {
+        beginIndex -= 1;
+      }
+      while (endIndex < items.length
+        && !items[endIndex].classList.contains('h-h2')) {
+        endIndex += 1;
+      }
+      for (var i = 0; i < beginIndex; i++) {
+        item = items[i]
+        if (!item.classList.contains('h-h2')) {
+          item.style.display = 'none';
+        }
+      }
+      for (var i = beginIndex + 1; i < endIndex; i++) {
+        item = items[i]
+        // if (!item.classList.contains('h-h2')) {
+          item.style.display = '';
+        // }
+      }
+      for (var i = endIndex; i < items.length; i++) {
+        item = items[i]
+        if (!item.classList.contains('h-h2')) {
+          item.style.display = 'none';
+        }
+      }
+    }
+
+    // Init menu collapsed
+    doMenuCollapse(-1);
+
+    // Active the menu item
+    window.addEventListener('scroll', function (event) {
+      var lastActive = menuContent.querySelector('.active');
+      var changed = true;
+      var activeIndex = -1;
+      for (var i = headings.length - 1; i >= 0; i--) {
+        var h = headings[i];
+        var headingRect = h.getBoundingClientRect();
+        var headerRect = header.getBoundingClientRect();
+        var headerTop = Math.floor(headerRect.top);
+        var headerHeight = Math.floor(headerRect.height);
+        var headerHeight = headerTop + headerHeight + 20;
+        if (headingRect.top <= headerHeight) {
+          var id = 'h-' + h.getAttribute('id');
+          var a = menuContent.querySelector('a[href="#' + id  + '"]');
+          var curActive = a.parentNode;
+          if (curActive) {
+            curActive.classList.add('active');
+            activeIndex = i;
+          }
+          if (lastActive == curActive) {
+            changed = false;
+          }
+          break;
+        }
+      }
+      if (changed) {
+        if (lastActive) {
+          lastActive.classList.remove('active');
+        }
+        doMenuCollapse(activeIndex);
+      }
+      event.preventDefault();
+    });
+  }
+  generateContent();
+</script>
+</section>
+</div>
+
+      </div>
+    </main><footer class="site-footer h-card">
+  <data class="u-url" href="/jekyll-theme-yat/"></data>
+
+  <div class="wrapper">
+    <div class="site-footer-inner">
+<div>Unpublished Work <span class="copyleft">©</span> 2017-2026 YeBin Yu</div>
+      <div>Powered by <a title="Jekyll is a simple, blog-aware, static site
+      generator." href="https://jekyllrb.com/">Jekyll</a> &amp; <a title="Yat, yet
+      another theme." href="https://github.com/jeffreytse/jekyll-theme-yat">Yat Theme</a>.</div>
+      <div class="footer-col rss-subscribe">Subscribe <a href="/jekyll-theme-yat/feed.xml">via RSS</a>
+</div>
+    </div>
+  </div>
+</footer>
+</body>
+</html>
